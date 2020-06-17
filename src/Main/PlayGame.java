@@ -60,11 +60,11 @@ public class PlayGame implements Runnable {
 	private int size_dan_y = 40;
 
 	private boolean[][] listdan = new boolean[10][16];
-	private boolean[][] listmb = new boolean[10][16];
+	private boolean[][] listmb = new boolean[11][16];
 	private Timer timer_dan;
 	private Timer timer_mb;
 	public int time = 50;
-	public int time_mb = 100;
+	public int time_mb = 200;
 	
 	Random generator = new Random();
 
@@ -87,6 +87,7 @@ public class PlayGame implements Runnable {
 			System.out.println("The port you entered was invalid, please input another port: ");
 			port = scanner.nextInt();
 		}
+	
 		for (int i = 0; i < 10; i++) {
 			for (int j = 1; j < 16; j++) {
 				listmb[i][j] = false;
@@ -99,9 +100,10 @@ public class PlayGame implements Runnable {
 			}
 		};
 		loadImages();
-
+		
 		painter = new Painter();
 		painter.setPreferredSize(new Dimension(WIDTH, HEIGHT));
+		
 
 		if (!connect()) {
 			initializeServer();
@@ -141,9 +143,12 @@ public class PlayGame implements Runnable {
 			int input = dis.readInt();
 			if (input % 50 == 0) {
 				x_tenlua = input;
-			} else {
-				listdan[9][input] = true;
 			}
+			else {
+				listdan[9][input] = true;
+				//listmb[0][input] = true;
+			}
+			String mb = dis.readLine();
 			painter.repaint();
 		} catch (Exception e) {
 			// TODO: handle exception
@@ -165,7 +170,9 @@ public class PlayGame implements Runnable {
 			for (int i = 0; i < 10; i++) {
 				for (int j = 0; j < 16; j++) {
 					if (listmb[i][j] == true)
-						g.drawImage(maybay, j * 50 + 20, i * 50, size_dan_x - 10, size_dan_y - 10, null, null);
+					{
+						g.drawImage(maybay, j * 50 + 10, i * 50, size_dan_x + 15, size_dan_y + 15, null, null);
+					}
 				}
 			};
 		}
@@ -231,6 +238,14 @@ public class PlayGame implements Runnable {
 			this.setBackground(Color.white);
 			timer_dan = new Timer(time, this);
 			timer_dan.start();
+			
+			Maybay appear = new Maybay();
+			timer_mb = new Timer(time_mb, appear);
+			timer_mb.start();
+			
+			Distance dis = new Distance();
+			Timer mm = new Timer(400, dis);
+			mm.start();
 		}
 
 		@Override
@@ -241,8 +256,6 @@ public class PlayGame implements Runnable {
 
 		@Override
 		public void keyTyped(KeyEvent e) {
-			throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods,
-																			// choose Tools | Templates.
 		}
 
 		@Override
@@ -297,54 +310,65 @@ public class PlayGame implements Runnable {
 
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
-			timer_dan.start();
+			//System.out.println("painter go");
 			for (int i = 0; i < 10; i++) {
 				for (int j = 0; j < 16; j++) {
 					if (listdan[i][j] == true) {
 						listdan[i][j] = false;
-						if (i > 0)
-						{
+						if (listmb[i][j]==true) {
+							listmb[i][j]=false;
+							
+						}else if (i > 0)
 							listdan[i - 1][j] = true;
-						}
+						
 					}
 				}
 			}
 			painter.repaint();
+		}
+}
 
+	
+	private class Maybay implements ActionListener {//khoang cach de may bay bay xuong
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			// TODO Auto-generated method stub
+			timer_mb.start();
+			for (int i = 9; i >= 0; i--) {
+				for (int j = 15; j >= 0; j--) {
+					if (listmb[i][j] == true) {
+						listmb[i][j] = false;
+						if (i >= 0 && i < 9)
+						{
+							listmb[i+1][j] = true;
+							painter.repaint();
+						}
+//						if(i == 10) {
+//							listmb[0][j] = true;
+//						}
+					}
+				}
+			}
+			painter.repaint();
 		}
 
 	}
-
-	private class Maybay extends Timer implements ActionListener {//XET XEM THANG NAO BANG TRUE THI CHO NO BAY XUONG
-		public Maybay(int delay, ActionListener listener) {
-			super(delay, listener);
-			System.out.println("START MAY BAY");
-			this.start();
-		}
+	
+	private class Distance implements ActionListener{ //Khoang thoi gian tao ra 2 may bay 
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			// TODO Auto-generated method stub
-			System.out.println("GOGOOGOGO");
-			this.start();
-			for(int i = 0; i < 3; i++) // them bien dieu chinh so luong may bay
-			{
-				int temp = generator.nextInt(16);
-				listmb[0][temp] = true;
-			}
-			for (int i = 0; i < 10; i++) {
-				for (int j = 0; j < 16; j++) {
-					if (listmb[i][j] == true) {
-						listmb[i][j] = false;
-						if (i < 10)
-						{
-							listmb[i + 1][j] = true;
-						}
-					}
-				}
+			int temp = generator.nextInt(15) + 1;
+			listmb[0][temp] = true;
+			try {
+				dos.writeChars(String.valueOf(temp));
+				dos.flush();
+			} catch (Exception e2) {
+				// TODO: handle exception
 			}
 			painter.repaint();
 		}
-
+		
 	}
 }
